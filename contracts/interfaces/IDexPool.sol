@@ -15,7 +15,6 @@ interface IDexPool {
     event LiquidityRemoved(
         address indexed lp,
         uint256 amount0,
-        uint256 share
     );
 
     /// @notice The contract that deployed the pool, which must adhere to the IUniswapV3Factory interface

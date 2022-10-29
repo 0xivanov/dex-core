@@ -28,20 +28,15 @@
     "@types/node": "^14.14.10",
     "@typescript-eslint/eslint-plugin": "^4.8.2",
     "@typescript-eslint/parser": "^4.8.2",
-    "husky": "^4.3.0",
     "lint-staged": "^10.5.2",
+    "pre-commit": "^1.2.2",
     "prettier": "^2.2.0",
     "prettier-plugin-solidity": "^1.0.0-beta.24",
     "solidity-coverage": "^0.8.2",
     "typechain": "^8.1.0"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": [
-        "npm run prettier:fix",
-        "npm run test",
-        "git add"
-      ]
-    }
-  }
+  "pre-commit": [
+    "npm run prettier:fix",
+    "npm run test"
+  ]
 }
