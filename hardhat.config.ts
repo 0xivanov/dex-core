@@ -3,8 +3,8 @@ import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-chai-matchers';
 import 'solidity-coverage';
 import 'ethers';
-import '@typechain/hardhat'
-import '@nomiclabs/hardhat-ethers'
+import '@typechain/hardhat';
+import '@nomiclabs/hardhat-ethers';
 
 const config: HardhatUserConfig = {
   solidity: '0.8.17',

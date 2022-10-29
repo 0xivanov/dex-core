@@ -36,7 +36,7 @@ contract DexPoolFactory is ERC165, IDexPoolFactory {
             tokenB,
             fee
         );
-        
+
         pool = address(new DexPoolProxy(initialImplementation, data));
         getPool[tokenA][tokenB][fee] = pool;
         // populate mapping in the reverse direction, deliberate choice to avoid the cost of comparing addresses
