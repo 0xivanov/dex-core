@@ -15,7 +15,6 @@ interface IDexPool {
     event LiquidityRemoved(
         address indexed lp,
         uint256 amount0,
-        uint256 amount1,
         uint256 share
     );
 

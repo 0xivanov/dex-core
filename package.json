@@ -35,16 +35,13 @@
     "solidity-coverage": "^0.8.2",
     "typechain": "^8.1.0"
   },
-  "lint-staged": {
-    "src/**/*.ts": [
-      "npm run prettier:fix",
-      "npm run test",
-      "git add"
-    ]
-  },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": [
+        "npm run prettier:fix",
+        "npm run test",
+        "git add"
+      ]
     }
   }
 }

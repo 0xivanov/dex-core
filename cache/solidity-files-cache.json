@@ -37,8 +37,8 @@
       ]
     },
     "C:\\Users\\i.ivanov\\Desktop\\projects\\dex\\dex-core\\contracts\\DexPool.sol": {
-      "lastModificationDate": 1667040772713,
-      "contentHash": "4ab5cf0f7caec2bf17dea97f80018066",
+      "lastModificationDate": 1667045239322,
+      "contentHash": "0b5b3215b92f75b86387d8c99a63d48c",
       "sourceName": "contracts/DexPool.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -80,8 +80,8 @@
       ]
     },
     "C:\\Users\\i.ivanov\\Desktop\\projects\\dex\\dex-core\\contracts\\interfaces\\IDexPool.sol": {
-      "lastModificationDate": 1667035036460,
-      "contentHash": "879b6cd4941a3613956fe3155f5dad1d",
+      "lastModificationDate": 1667045239486,
+      "contentHash": "ee5f4ae77b4760ecef31378e871ae208",
       "sourceName": "contracts/interfaces/IDexPool.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -481,8 +481,8 @@
       ]
     },
     "C:\\Users\\i.ivanov\\Desktop\\projects\\dex\\dex-core\\contracts\\proxy\\DexPoolProxy.sol": {
-      "lastModificationDate": 1666341575707,
-      "contentHash": "a65a3a95042f775797ddf7efb3e32871",
+      "lastModificationDate": 1667045239524,
+      "contentHash": "64ca2c18f6a8a9004241ce8a01c4d728",
       "sourceName": "contracts/proxy/DexPoolProxy.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -518,8 +518,8 @@
       ]
     },
     "C:\\Users\\i.ivanov\\Desktop\\projects\\dex\\dex-core\\contracts\\DexPoolFactory.sol": {
-      "lastModificationDate": 1667035766909,
-      "contentHash": "82b42b8f1e00fcb8b6d94a926c64ee80",
+      "lastModificationDate": 1667045239379,
+      "contentHash": "5d3eaaa1db631f225cb2ad7d9dc3358c",
       "sourceName": "contracts/DexPoolFactory.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -558,8 +558,8 @@
       ]
     },
     "C:\\Users\\i.ivanov\\Desktop\\projects\\dex\\dex-core\\contracts\\interfaces\\IDexPoolFactory.sol": {
-      "lastModificationDate": 1666970210739,
-      "contentHash": "35ec01f0b28932d18b98d2e3cb2d6c1a",
+      "lastModificationDate": 1667045239506,
+      "contentHash": "2e97519479032065ef4c626e7c41245a",
       "sourceName": "contracts/interfaces/IDexPoolFactory.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -1300,8 +1300,8 @@
       ]
     },
     "C:\\Users\\i.ivanov\\Desktop\\projects\\dex\\dex-core\\contracts\\governance\\DexGovernor.sol": {
-      "lastModificationDate": 1666856195173,
-      "contentHash": "3c5c5870626b158544e136cfb9c958de",
+      "lastModificationDate": 1667045239429,
+      "contentHash": "cef92d79edace78b4eee356bbf422234",
       "sourceName": "contracts/governance/DexGovernor.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -1754,8 +1754,8 @@
       ]
     },
     "C:\\Users\\i.ivanov\\Desktop\\projects\\dex\\dex-core\\contracts\\governance\\GovernanceToken.sol": {
-      "lastModificationDate": 1666854544699,
-      "contentHash": "dc11397174b109fb38948b5a99b8f2ea",
+      "lastModificationDate": 1667045239464,
+      "contentHash": "46a3fa3fafbd8450493afa6040ccefcb",
       "sourceName": "contracts/governance/GovernanceToken.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -1793,8 +1793,8 @@
       ]
     },
     "C:\\Users\\i.ivanov\\Desktop\\projects\\dex\\dex-core\\contracts\\governance\\GovernanceTimeLock.sol": {
-      "lastModificationDate": 1666856384149,
-      "contentHash": "6c948bc269c5a6a803719b58c14a6c56",
+      "lastModificationDate": 1667045239445,
+      "contentHash": "4e46ee7a6b36a4238f5e12121d396bf4",
       "sourceName": "contracts/governance/GovernanceTimeLock.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -1869,8 +1869,8 @@
       ]
     },
     "C:\\Users\\i.ivanov\\Desktop\\projects\\dex\\dex-core\\contracts\\DexToken.sol": {
-      "lastModificationDate": 1667032760369,
-      "contentHash": "2b529986565ad35caa7e246e60eab19f",
+      "lastModificationDate": 1667045239397,
+      "contentHash": "100f760cb8304128e5723c50b061579c",
       "sourceName": "contracts/DexToken.sol",
       "solcConfig": {
         "version": "0.8.17",
