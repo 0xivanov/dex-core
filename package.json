@@ -5,6 +5,7 @@
   "scripts": {
     "prettier:check": "prettier --check .",
     "prettier:fix": "prettier --write .",
+    "prettier:contracts": "prettier --write 'contracts/**/*.sol'",
     "test": "npx hardhat test",
     "coverage": "npx hardhat coverage"
   },
@@ -37,6 +38,7 @@
   },
   "pre-commit": [
     "prettier:fix",
+    "prettier:contracts",
     "test"
   ]
 }
