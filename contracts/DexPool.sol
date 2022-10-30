@@ -9,6 +9,8 @@ import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 import './interfaces/IDexPool.sol';
 import './interfaces/IDexPoolFactory.sol';
 
+import 'hardhat/console.sol';
+
 error InvalidTokens();
 error InvalidFee();
 error InvalidFactory();
@@ -101,6 +103,8 @@ contract DexPool is IDexPool, UUPSUpgradeable, Initializable {
         if (totalShares > 0) {
             if (balance0 * amount1 != balance1 * amount0)
                 revert InvalidLiquidityAllocation(amount0, amount1);
+
+            console.log(amount0, totalShares, balance0);
             share = (amount0 * totalShares) / balance0;
         } else {
             share = sqrt(amount0 * amount1);
@@ -113,6 +117,7 @@ contract DexPool is IDexPool, UUPSUpgradeable, Initializable {
         );
 
         emit LiquidityAdded(msg.sender, amount0, amount1, share);
+        return share;
     }
 
     function removeLiquidity(uint256 share)
@@ -140,6 +145,7 @@ contract DexPool is IDexPool, UUPSUpgradeable, Initializable {
         );
 
         emit LiquidityRemoved(msg.sender, amount0, amount1, share);
+        return (amount0, amount1);
     }
 
     function swap(address _tokenIn, uint256 amountIn)
