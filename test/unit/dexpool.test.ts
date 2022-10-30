@@ -5,6 +5,7 @@ import { BigNumber } from 'ethers';
 import { deployFixtures } from '../shared/fixtures';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DexPool, DexPoolFactory, DexToken } from '../../typechain-types';
+import { getRandomNumber, getTestAmounts } from '../utils/pool-utils';
 
 describe('DexPool.sol', () => {
   async function loadVariables(fee: BigNumber) {
@@ -260,64 +261,76 @@ describe('DexPool.sol', () => {
         Math.sqrt(amount0 * amount1).toFixed()
       );
     });
-
-    it('mints shares correctly', async function () {
-      let totalShares = Math.floor(Math.sqrt(amount0 * amount1));
-      expect(await dexPool.balanceOf(alice.address)).to.equal(
-        BigNumber.from(totalShares)
-      );
-
-      amount0 = 50;
-      amount1 = 100;
-      await mintAndIncreaseAllowance(token0, dexPool.address, bob, amount0);
-      await mintAndIncreaseAllowance(token1, dexPool.address, bob, amount1);
-
-      let expectedShare = Math.floor(
-        (amount0 * totalShares) / (await (await dexPool.balance0()).toNumber())
-      );
-      let previousShare = await (
-        await dexPool.balanceOf(bob.address)
-      ).toNumber();
-      expect(
-        Math.floor(
-          (amount1 * totalShares) /
-            (await (await dexPool.balance1()).toNumber())
-        )
-      ).to.equal(expectedShare);
-
-      await expect(dexPool.connect(bob).addLiquidity(amount0, amount1))
-        .to.emit(dexPool, 'LiquidityAdded')
-        .withArgs(bob.address, amount0, amount1, expectedShare);
-      expect(await dexPool.balanceOf(bob.address)).to.equal(
-        BigNumber.from(expectedShare + previousShare)
-      );
-      totalShares = await (await dexPool.totalShares()).toNumber();
-
-      amount0 = 132;
-      amount1 = 264;
-      await mintAndIncreaseAllowance(token0, dexPool.address, alice, amount0);
-      await mintAndIncreaseAllowance(token1, dexPool.address, alice, amount1);
-
-      expectedShare = Math.floor(
-        (amount0 * totalShares) / (await (await dexPool.balance0()).toNumber())
-      );
-      previousShare = await (await dexPool.balanceOf(alice.address)).toNumber();
-      expect(
-        Math.floor(
-          (amount1 * totalShares) /
-            (await (await dexPool.balance1()).toNumber())
-        )
-      ).to.equal(expectedShare);
-
-      await expect(dexPool.connect(alice).addLiquidity(amount0, amount1))
-        .to.emit(dexPool, 'LiquidityAdded')
-        .withArgs(alice.address, amount0, amount1, expectedShare);
-
-      console.log(await dexPool.balanceOf(alice.address));
-      console.log(await dexPool.totalShares());
-      expect(await dexPool.balanceOf(alice.address)).to.equal(
-        BigNumber.from(expectedShare + previousShare)
-      );
-    });
   });
+
+  for (let i = 1; i <= 100; i = i + 7) {
+    describe('AddLiquidity test cases', async function () {
+      let dexPool: DexPool,
+        token0: DexToken,
+        token1: DexToken,
+        alice: SignerWithAddress, //lp 1
+        bob: SignerWithAddress, //lp 2
+        dexPoolFactory: DexPoolFactory,
+        initParams: [string, string, string, BigNumber];
+
+      this.beforeAll(async function () {
+        ({ dexPool, dexPoolFactory, token0, token1, alice, bob, initParams } =
+          await loadVariables(BigNumber.from(3000)));
+
+        const factorySigner = await hardhatImpersonateDexFactory(
+          dexPoolFactory.address
+        );
+        await dexPool.connect(factorySigner).initialize(...initParams);
+        let amount0 = getRandomNumber(100);
+        let amount1 = amount0 * i;
+        await mintAndIncreaseAllowance(token0, dexPool.address, alice, amount0);
+        await mintAndIncreaseAllowance(token1, dexPool.address, alice, amount1);
+        await dexPool.connect(alice).addLiquidity(amount0, amount1);
+      });
+
+      for (const testCase of getTestAmounts(i)) {
+        let amount0: number, amount1: number;
+        ({ amount0, amount1 } = testCase);
+
+        it('mints shares correctly', async function () {
+          let signer = amount0 % 2 == 0 ? alice : bob;
+
+          await mintAndIncreaseAllowance(
+            token0,
+            dexPool.address,
+            signer,
+            amount0
+          );
+          await mintAndIncreaseAllowance(
+            token1,
+            dexPool.address,
+            signer,
+            amount1
+          );
+          let totalShares = await (await dexPool.totalShares()).toNumber();
+
+          let expectedShare = Math.floor(
+            (amount0 * totalShares) /
+              (await (await dexPool.balance0()).toNumber())
+          );
+          let previousShare = await (
+            await dexPool.balanceOf(signer.address)
+          ).toNumber();
+          expect(
+            Math.floor(
+              (amount1 * totalShares) /
+                (await (await dexPool.balance1()).toNumber())
+            )
+          ).to.equal(expectedShare);
+
+          await expect(dexPool.connect(signer).addLiquidity(amount0, amount1))
+            .to.emit(dexPool, 'LiquidityAdded')
+            .withArgs(signer.address, amount0, amount1, expectedShare);
+          expect(await dexPool.balanceOf(signer.address)).to.equal(
+            BigNumber.from(expectedShare + previousShare)
+          );
+        });
+      }
+    });
+  }
 });

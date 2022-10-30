@@ -1,16 +1,23 @@
-import { ethers, network } from 'hardhat';
+interface PoolTestCase {
+  amount0: number;
+  amount1: number;
+}
 
-const NAME = 'Ticket';
+export function getRandomNumber(max: number): number {
+  return Math.floor(Math.random() * max);
+}
 
-const SYMBOL = 'TIK';
+function getAmounts(index: number): PoolTestCase {
+  const amount0 = getRandomNumber(1000);
+  const amount1 = Math.floor(amount0 * index);
+  return { amount0, amount1 };
+}
 
-const PRICE = ethers.utils.parseEther('0.001');
+export function getTestAmounts(index: number): PoolTestCase[] {
+  let TEST_AMOUNTS: PoolTestCase[] = [];
 
-const getBlocks = async function () {
-  const CURRENT_BLOCK = Number(await network.provider.send('eth_blockNumber'));
-  const START_BLOCK = CURRENT_BLOCK + 5;
-  const END_BLOCK = START_BLOCK + 10;
-  return { CURRENT_BLOCK, START_BLOCK, END_BLOCK };
-};
-
-module.exports = { NAME, SYMBOL, PRICE, getBlocks };
+  for (let i = 1; i < 5; i++) {
+    TEST_AMOUNTS.push(getAmounts(index));
+  }
+  return TEST_AMOUNTS;
+}
