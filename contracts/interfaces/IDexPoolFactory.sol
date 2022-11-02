@@ -3,6 +3,12 @@ pragma solidity ^0.8.9;
 
 interface IDexPoolFactory {
     event OwnershipTransfered(address indexed oldOwner, address newOwner);
+    event PoolCreated(
+        address indexed tokenA,
+        address indexed tokenB,
+        uint256 indexed fee,
+        address pool
+    );
 
     /// @notice The pool"s upgrade admin
     /// @return The owner
@@ -17,13 +23,6 @@ interface IDexPoolFactory {
         address tokenB,
         uint256 fee
     ) external view returns (address pool);
-
-    event PoolCreated(
-        address indexed token0,
-        address indexed token1,
-        uint256 indexed fee,
-        address pool
-    );
 
     function createPool(
         address initialImplementation,

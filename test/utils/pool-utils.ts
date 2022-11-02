@@ -1,15 +1,17 @@
+import { BigNumber } from 'ethers';
+
 interface PoolTestCase {
-  amount0: number;
-  amount1: number;
+  amount0: BigNumber;
+  amount1: BigNumber;
 }
 
 export function getRandomNumber(max: number): number {
-  return Math.floor(Math.random() * max);
+  return Math.floor((Math.random() + 1) * max);
 }
 
 function getAmounts(index: number): PoolTestCase {
-  const amount0 = getRandomNumber(1000);
-  const amount1 = Math.floor(amount0 * index);
+  const amount0 = BigNumber.from(getRandomNumber(1000));
+  const amount1 = BigNumber.from(amount0.mul(index));
   return { amount0, amount1 };
 }
 

@@ -16,7 +16,7 @@ error InvalidFee();
 error InvalidFactory();
 error InvalidCaller(string reason);
 error InvalidAddress();
-error InvalidAmount(address token, uint256 amount);
+error InvalidAmount();
 error InvalidToken();
 error InvalidLiquidityAllocation(uint256 amount0, uint256 amount1);
 error InvalidShare();
@@ -99,12 +99,11 @@ contract DexPool is IDexPool, UUPSUpgradeable, Initializable {
         // user has to approve amount
         token0.safeTransferFrom(msg.sender, address(this), amount0);
         token1.safeTransferFrom(msg.sender, address(this), amount1);
-
+        if (amount0 == 0 || amount1 == 0)
+            revert InvalidLiquidityAllocation(amount0, amount1);
         if (totalShares > 0) {
             if (balance0 * amount1 != balance1 * amount0)
                 revert InvalidLiquidityAllocation(amount0, amount1);
-
-            console.log(amount0, totalShares, balance0);
             share = (amount0 * totalShares) / balance0;
         } else {
             share = sqrt(amount0 * amount1);
@@ -154,7 +153,7 @@ contract DexPool is IDexPool, UUPSUpgradeable, Initializable {
     {
         if (_tokenIn != address(token0) && _tokenIn != address(token1))
             revert InvalidToken();
-        if (amountIn == 0) revert InvalidAmount(_tokenIn, amountIn);
+        if (amountIn == 0) revert InvalidAmount();
 
         bool isToken0 = _tokenIn == address(token0);
         (
@@ -190,6 +189,7 @@ contract DexPool is IDexPool, UUPSUpgradeable, Initializable {
             token1.balanceOf(address(this))
         );
 
+        emit Swap(_tokenIn, amountIn, amountOut);
         return amountOut;
     }
 

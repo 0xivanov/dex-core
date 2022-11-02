@@ -3,4 +3,5 @@ build/
 artifacts/
 cache/
 typechain-types/
+coverage/
 package-lock.json

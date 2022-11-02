@@ -6,79 +6,25 @@ import { deployFixtures } from '../shared/fixtures';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DexPool, DexPoolFactory, DexToken } from '../../typechain-types';
 import { getRandomNumber, getTestAmounts } from '../utils/pool-utils';
+import { sqrt } from '../utils/bn';
+import {
+  hardhatImpersonateDexFactory,
+  loadVariables,
+  mintAndIncreaseAllowance,
+} from '../shared/setup';
 
 describe('DexPool.sol', () => {
-  async function loadVariables(fee: BigNumber) {
-    // We define a fixture to reuse the same setup in every test.
-    // We use loadFixture to run this setup once, snapshot that state,
-    // and reset Hardhat Network to that snapshot in every test.
-    const {
-      deployer,
-      alice,
-      bob,
-      charlie,
-      daniel,
-      dexPool,
-      dexTokenA,
-      dexTokenB,
-      dexPoolFactory,
-    } = await loadFixture(deployFixtures);
-
-    const initParams: [string, string, string, BigNumber] = [
-      deployer.address,
-      dexTokenA.address,
-      dexTokenB.address,
-      fee,
-    ];
-
-    const token0 = initParams[1] < initParams[2] ? dexTokenA : dexTokenB;
-
-    const token1 = initParams[1] > initParams[2] ? dexTokenA : dexTokenB;
-
-    return {
-      deployer,
-      alice,
-      bob,
-      charlie,
-      daniel,
-      dexPool,
-      dexPoolFactory,
-      token0,
-      token1,
-      initParams,
-    };
-  }
-
-  async function hardhatImpersonateDexFactory(
-    address: string
-  ): Promise<SignerWithAddress> {
-    await network.provider.send('hardhat_setBalance', [
-      address,
-      ethers.utils.parseEther('1').toHexString().replace('0x0', '0x'),
-    ]);
-    await network.provider.request({
-      method: 'hardhat_impersonateAccount',
-      params: [address],
-    });
-    const factorySigner = await ethers.getSigner(address);
-    return factorySigner;
-  }
-
-  async function mintAndIncreaseAllowance(
-    token: DexToken,
-    dexAddress: string,
-    signer: SignerWithAddress,
-    amount: number
-  ) {
-    await token.connect(signer).mint(amount);
-    await token.connect(signer).increaseAllowance(dexAddress, amount);
-  }
+  let dexPool: DexPool,
+    token0: DexToken,
+    token1: DexToken,
+    deployer: SignerWithAddress,
+    factorySigner: SignerWithAddress,
+    alice: SignerWithAddress, //lp 1
+    bob: SignerWithAddress, //lp 2
+    dexPoolFactory: DexPoolFactory,
+    initParams: [string, string, string, BigNumber];
 
   describe('Initialize', async function () {
-    let dexPool: DexPool,
-      dexPoolFactory: DexPoolFactory,
-      deployer: SignerWithAddress,
-      initParams: [string, string, string, BigNumber];
     beforeEach('load fixtures and initialize DexPool', async function () {
       ({ dexPool, deployer, dexPoolFactory, initParams } = await loadVariables(
         BigNumber.from(3000)
@@ -112,11 +58,6 @@ describe('DexPool.sol', () => {
   });
 
   describe('Revert initialize', async function () {
-    let dexPool: DexPool,
-      factorySigner: SignerWithAddress,
-      alice: SignerWithAddress,
-      dexPoolFactory: DexPoolFactory,
-      initParams: [string, string, string, BigNumber];
     beforeEach('load fixtures', async function () {
       ({ dexPool, dexPoolFactory, alice, initParams } = await loadVariables(
         BigNumber.from(3000)
@@ -224,22 +165,15 @@ describe('DexPool.sol', () => {
   });
 
   describe('AddLiquidity', async function () {
-    let dexPool: DexPool,
-      token0: DexToken,
-      token1: DexToken,
-      alice: SignerWithAddress, //lp 1
-      bob: SignerWithAddress, //lp 2
-      dexPoolFactory: DexPoolFactory,
-      initParams: [string, string, string, BigNumber];
-    let amount0 = 500,
-      amount1 = 1000;
+    let amount0 = BigNumber.from(500),
+      amount1 = BigNumber.from(1000);
     beforeEach(
       'load fixtures, initialize DexPool and approve tokens',
       async function () {
         ({ dexPool, dexPoolFactory, token0, token1, alice, bob, initParams } =
           await loadVariables(BigNumber.from(3000)));
-        amount0 = 500;
-        amount1 = 1000;
+        amount0 = BigNumber.from(500);
+        amount1 = BigNumber.from(1000);
 
         const factorySigner = await hardhatImpersonateDexFactory(
           dexPoolFactory.address
@@ -257,22 +191,12 @@ describe('DexPool.sol', () => {
     });
 
     it('updates total shares', async function () {
-      expect(await dexPool.totalShares()).to.equal(
-        Math.sqrt(amount0 * amount1).toFixed()
-      );
+      expect(await dexPool.totalShares()).to.equal(sqrt(amount0.mul(amount1)));
     });
   });
 
   for (let i = 1; i <= 100; i = i + 7) {
     describe('AddLiquidity test cases', async function () {
-      let dexPool: DexPool,
-        token0: DexToken,
-        token1: DexToken,
-        alice: SignerWithAddress, //lp 1
-        bob: SignerWithAddress, //lp 2
-        dexPoolFactory: DexPoolFactory,
-        initParams: [string, string, string, BigNumber];
-
       this.beforeAll(async function () {
         ({ dexPool, dexPoolFactory, token0, token1, alice, bob, initParams } =
           await loadVariables(BigNumber.from(3000)));
@@ -281,19 +205,19 @@ describe('DexPool.sol', () => {
           dexPoolFactory.address
         );
         await dexPool.connect(factorySigner).initialize(...initParams);
-        let amount0 = getRandomNumber(100);
-        let amount1 = amount0 * i;
+        let amount0 = BigNumber.from(getRandomNumber(100));
+        let amount1 = amount0.mul(i);
         await mintAndIncreaseAllowance(token0, dexPool.address, alice, amount0);
         await mintAndIncreaseAllowance(token1, dexPool.address, alice, amount1);
         await dexPool.connect(alice).addLiquidity(amount0, amount1);
       });
 
       for (const testCase of getTestAmounts(i)) {
-        let amount0: number, amount1: number;
+        let amount0: BigNumber, amount1: BigNumber;
         ({ amount0, amount1 } = testCase);
 
         it('mints shares correctly', async function () {
-          let signer = amount0 % 2 == 0 ? alice : bob;
+          let signer = amount0.div(2) == BigNumber.from(0) ? alice : bob;
 
           await mintAndIncreaseAllowance(
             token0,
@@ -307,30 +231,213 @@ describe('DexPool.sol', () => {
             signer,
             amount1
           );
-          let totalShares = await (await dexPool.totalShares()).toNumber();
+          let totalShares = await dexPool.totalShares();
 
-          let expectedShare = Math.floor(
-            (amount0 * totalShares) /
-              (await (await dexPool.balance0()).toNumber())
-          );
+          let expectedShare = amount0
+            .mul(totalShares)
+            .div(await dexPool.balance0());
           let previousShare = await (
             await dexPool.balanceOf(signer.address)
           ).toNumber();
           expect(
-            Math.floor(
-              (amount1 * totalShares) /
-                (await (await dexPool.balance1()).toNumber())
-            )
+            amount1.mul(totalShares).div(await dexPool.balance1())
           ).to.equal(expectedShare);
 
           await expect(dexPool.connect(signer).addLiquidity(amount0, amount1))
             .to.emit(dexPool, 'LiquidityAdded')
             .withArgs(signer.address, amount0, amount1, expectedShare);
           expect(await dexPool.balanceOf(signer.address)).to.equal(
-            BigNumber.from(expectedShare + previousShare)
+            BigNumber.from(expectedShare.add(previousShare))
           );
         });
       }
     });
   }
+
+  describe('Revert addLiquidity', async function () {
+    let ratio = 2;
+    let amount0 = BigNumber.from(1000);
+    let amount1 = amount0.mul(ratio);
+    beforeEach(async function () {
+      ({ dexPool, dexPoolFactory, token0, token1, alice, initParams } =
+        await loadVariables(BigNumber.from(3000)));
+
+      const factorySigner = await hardhatImpersonateDexFactory(
+        dexPoolFactory.address
+      );
+      await dexPool.connect(factorySigner).initialize(...initParams);
+      await mintAndIncreaseAllowance(
+        token0,
+        dexPool.address,
+        alice,
+        amount0.mul(2)
+      );
+      await mintAndIncreaseAllowance(
+        token1,
+        dexPool.address,
+        alice,
+        amount1.mul(2)
+      );
+      await dexPool.connect(alice).addLiquidity(amount0, amount1);
+    });
+
+    it('shoud throw if amount0 or amount1 are 0', async function () {
+      await expect(
+        dexPool.connect(alice).addLiquidity(0, amount1.sub(1))
+      ).to.be.revertedWithCustomError(dexPool, 'InvalidLiquidityAllocation');
+      await expect(
+        dexPool.connect(alice).addLiquidity(amount0.sub(1), 0)
+      ).to.be.revertedWithCustomError(dexPool, 'InvalidLiquidityAllocation');
+      await expect(
+        dexPool.connect(alice).addLiquidity(0, 0)
+      ).to.be.revertedWithCustomError(dexPool, 'InvalidLiquidityAllocation');
+    });
+
+    it('shoud throw if token allocation changes the price in the pool', async function () {
+      await expect(
+        dexPool.connect(alice).addLiquidity(amount0, amount1.sub(1))
+      ).to.be.revertedWithCustomError(dexPool, 'InvalidLiquidityAllocation');
+      await expect(
+        dexPool.connect(alice).addLiquidity(amount0.sub(1), amount1)
+      ).to.be.revertedWithCustomError(dexPool, 'InvalidLiquidityAllocation');
+    });
+  });
+
+  describe('RemoveLiquidity', async function () {
+    let ratio = 2;
+    let amount0 = BigNumber.from(1000);
+    let amount1 = amount0.mul(ratio);
+    beforeEach(async function () {
+      ({ dexPool, dexPoolFactory, token0, token1, alice, initParams } =
+        await loadVariables(BigNumber.from(3000)));
+
+      const factorySigner = await hardhatImpersonateDexFactory(
+        dexPoolFactory.address
+      );
+      await dexPool.connect(factorySigner).initialize(...initParams);
+      await mintAndIncreaseAllowance(token0, dexPool.address, alice, amount0);
+      await mintAndIncreaseAllowance(token1, dexPool.address, alice, amount1);
+      await dexPool.connect(alice).addLiquidity(amount0, amount1);
+    });
+    it('burns shares', async function () {
+      let totalShares = await dexPool.totalShares();
+      let share = await dexPool.balanceOf(alice.address);
+      await dexPool.connect(alice).removeLiquidity(share);
+      share = await dexPool.balanceOf(alice.address);
+      totalShares = await dexPool.totalShares();
+      expect(totalShares.add(share)).to.equal(0);
+    });
+    it('transfers tokens correctly', async function () {
+      let balance0 = await dexPool.balance0();
+      let balance1 = await dexPool.balance1();
+      let share = await dexPool.balanceOf(alice.address);
+      let totalShares = await dexPool.totalShares();
+      let expectedTransfer0 = share.mul(balance0).div(totalShares);
+      let expectedTransfer1 = share.mul(balance1).div(totalShares);
+      await expect(dexPool.connect(alice).removeLiquidity(share))
+        .to.emit(dexPool, 'LiquidityRemoved')
+        .withArgs(alice.address, expectedTransfer0, expectedTransfer1, share);
+      share = await dexPool.balanceOf(alice.address);
+      totalShares = await dexPool.totalShares();
+      expect(totalShares.add(share)).to.equal(0);
+    });
+  });
+  describe('Revert removeLiquidity', async function () {
+    beforeEach(async function () {
+      ({ dexPool, alice, initParams } = await loadVariables(
+        BigNumber.from(3000)
+      ));
+
+      const factorySigner = await hardhatImpersonateDexFactory(
+        dexPoolFactory.address
+      );
+      await dexPool.connect(factorySigner).initialize(...initParams);
+    });
+    it('throws if share is 0', async function () {
+      await expect(
+        dexPool.connect(alice).removeLiquidity(0)
+      ).to.be.revertedWithCustomError(dexPool, 'InvalidShare');
+    });
+    it('throws if msg.sender does not have enough shares', async function () {
+      await expect(
+        dexPool.connect(alice).removeLiquidity(10)
+      ).to.be.revertedWithCustomError(dexPool, 'InvalidShare');
+    });
+  });
+  describe('Swap', async function () {
+    let ratio = 2;
+    let amount0 = BigNumber.from(1000);
+    let amount1 = amount0.mul(ratio);
+    beforeEach(async function () {
+      ({ dexPool, dexPoolFactory, token0, token1, alice, bob, initParams } =
+        await loadVariables(BigNumber.from(3000)));
+
+      const factorySigner = await hardhatImpersonateDexFactory(
+        dexPoolFactory.address
+      );
+      await dexPool.connect(factorySigner).initialize(...initParams);
+      await mintAndIncreaseAllowance(token0, dexPool.address, alice, amount0);
+      await mintAndIncreaseAllowance(token1, dexPool.address, alice, amount1);
+      await dexPool.connect(alice).addLiquidity(amount0, amount1);
+    });
+    it('transfers the provided token', async function () {
+      await mintAndIncreaseAllowance(token0, dexPool.address, bob, amount0);
+      await dexPool.connect(bob).swap(token0.address, amount0);
+      expect(await token0.balanceOf(alice.address)).to.equal(0);
+    });
+    it('transfers the provided token', async function () {
+      await mintAndIncreaseAllowance(token1, dexPool.address, bob, amount1);
+      await dexPool.connect(bob).swap(token1.address, amount0);
+      expect(await token1.balanceOf(alice.address)).to.equal(0);
+    });
+    it('transfers the other pair token correctly', async function () {
+      let amountWithFee = amount0.sub(amount0.mul(3).div(1000));
+      let expectedTransfer = amountWithFee
+        .mul(await dexPool.balance1())
+        .div(amountWithFee.add(await dexPool.balance0()));
+
+      await mintAndIncreaseAllowance(token0, dexPool.address, bob, amount0);
+      await expect(dexPool.connect(bob).swap(token0.address, amount0))
+        .to.emit(dexPool, 'Swap')
+        .withArgs(token0.address, amount0, expectedTransfer);
+    });
+    it('transfers the other pair token correctly', async function () {
+      let amountWithFee = amount1.sub(amount1.mul(3).div(1000));
+      let expectedTransfer = amountWithFee
+        .mul(await dexPool.balance0())
+        .div(amountWithFee.add(await dexPool.balance1()));
+
+      await mintAndIncreaseAllowance(token1, dexPool.address, bob, amount1);
+      await expect(dexPool.connect(bob).swap(token1.address, amount1))
+        .to.emit(dexPool, 'Swap')
+        .withArgs(token1.address, amount1, expectedTransfer);
+    });
+  });
+  describe('Revert swap', async function () {
+    let ratio = 2;
+    let amount0 = BigNumber.from(1000);
+    let amount1 = amount0.mul(ratio);
+    beforeEach(async function () {
+      ({ dexPool, dexPoolFactory, token0, token1, alice, bob, initParams } =
+        await loadVariables(BigNumber.from(3000)));
+
+      const factorySigner = await hardhatImpersonateDexFactory(
+        dexPoolFactory.address
+      );
+      await dexPool.connect(factorySigner).initialize(...initParams);
+      await mintAndIncreaseAllowance(token0, dexPool.address, alice, amount0);
+      await mintAndIncreaseAllowance(token1, dexPool.address, alice, amount1);
+      await dexPool.connect(alice).addLiquidity(amount0, amount1);
+    });
+    it('throws if token is invalid', async function () {
+      await expect(
+        dexPool.connect(bob).swap(alice.address, amount0)
+      ).to.be.revertedWithCustomError(dexPool, 'InvalidToken');
+    });
+    it('throws if amount is 0', async function () {
+      await expect(
+        dexPool.connect(bob).swap(token0.address, 0)
+      ).to.be.revertedWithCustomError(dexPool, 'InvalidAmount');
+    });
+  });
 });

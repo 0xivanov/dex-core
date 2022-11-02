@@ -19,6 +19,8 @@ interface IDexPool {
         uint256 share
     );
 
+    event Swap(address _tokenIn, uint256 amountIn, uint256 amoutOut);
+
     /// @notice The contract that deployed the pool, which must adhere to the IUniswapV3Factory interface
     /// @return The contract address
     function factory() external view returns (IDexPoolFactory);

@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat';
 
 async function main() {
-  const [deployer] = await ethers.getSigners();
+  const deployer = new ethers.providers.Web3Provider(web3Provider).getSigner();
   const DexPool = await ethers.getContractFactory('DexPool');
   const dexPool = await DexPool.connect(deployer).deploy();
   await dexPool.deployed();
