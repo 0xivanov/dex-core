@@ -1,10 +1,8 @@
-import { ethers } from 'hardhat';
+import { ethers, upgrades } from 'hardhat';
+import { DexPool } from '../../typechain-types';
 
 export async function deployFixtures() {
   const [deployer, alice, bob, charlie, daniel] = await ethers.getSigners();
-
-  const DexPool = await ethers.getContractFactory('DexPool');
-  const dexPool = await DexPool.connect(deployer).deploy();
 
   const DexTokenA = await ethers.getContractFactory('DexToken');
   const dexTokenA = await DexTokenA.connect(deployer).deploy();
@@ -15,6 +13,14 @@ export async function deployFixtures() {
   const DexPoolFactory = await ethers.getContractFactory('DexPoolFactory');
   const dexPoolFactory = await DexPoolFactory.connect(deployer).deploy();
 
+  const DexPool = await ethers.getContractFactory('DexPool');
+  const dexPoolImpl = await DexPool.deploy();
+
+  const DexPoolProxy = await ethers.getContractFactory('DexPoolProxy');
+  const dexPoolProxy = await DexPoolProxy.deploy(dexPoolImpl.address, '0x');
+
+  const dexPool = DexPool.attach(dexPoolProxy.address);
+
   return {
     deployer,
     alice,
@@ -22,6 +28,7 @@ export async function deployFixtures() {
     charlie,
     daniel,
     dexPool,
+    dexPoolImpl,
     dexTokenA,
     dexTokenB,
     dexPoolFactory,

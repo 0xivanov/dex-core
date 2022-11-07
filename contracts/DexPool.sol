@@ -11,6 +11,7 @@ import './interfaces/IDexPoolFactory.sol';
 
 import 'hardhat/console.sol';
 
+error AlreadyInitialized();
 error InvalidTokens();
 error InvalidFee();
 error InvalidFactory();
@@ -21,7 +22,7 @@ error InvalidToken();
 error InvalidLiquidityAllocation(uint256 amount0, uint256 amount1);
 error InvalidShare();
 
-contract DexPool is IDexPool, UUPSUpgradeable, Initializable {
+contract DexPool is IDexPool, UUPSUpgradeable {
     using SafeERC20 for IERC20;
 
     /// @inheritdoc IDexPool
@@ -43,14 +44,26 @@ contract DexPool is IDexPool, UUPSUpgradeable, Initializable {
     /// @inheritdoc IDexPool
     uint256 public override totalShares;
 
+    bool private _initialized;
+
     mapping(address => uint256) public balanceOf;
+
+    modifier initializer() {
+        if (_initialized == true) revert AlreadyInitialized();
+        _initialized = true;
+        _;
+    }
+
+    constructor() {
+        _initialized = true;
+    }
 
     function initialize(
         address _owner,
         address tokenA,
         address tokenB,
         uint256 _fee
-    ) external initializer {
+    ) public initializer {
         (address _token0, address _token1) = tokenA < tokenB
             ? (tokenA, tokenB)
             : (tokenB, tokenA);
@@ -130,18 +143,19 @@ contract DexPool is IDexPool, UUPSUpgradeable, Initializable {
 
         assert(amount0 > 0 && amount1 > 0);
 
+        updateBalances(
+            token0.balanceOf(address(this)),
+            token1.balanceOf(address(this))
+        );
+
         burnShares(msg.sender, share);
+
         // contract approves itself
         token0.safeIncreaseAllowance(address(this), amount0);
         token1.safeIncreaseAllowance(address(this), amount1);
 
         token0.safeTransferFrom(address(this), msg.sender, amount0);
         token1.safeTransferFrom(address(this), msg.sender, amount1);
-
-        updateBalances(
-            token0.balanceOf(address(this)),
-            token1.balanceOf(address(this))
-        );
 
         emit LiquidityRemoved(msg.sender, amount0, amount1, share);
         return (amount0, amount1);
@@ -237,3 +251,5 @@ contract DexPool is IDexPool, UUPSUpgradeable, Initializable {
         }
     }
 }
+
+contract DexPoolTest is DexPool {}

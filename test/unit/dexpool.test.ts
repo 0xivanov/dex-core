@@ -1,17 +1,15 @@
-import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
-import { expect } from 'chai';
-import { ethers, network } from 'hardhat';
-import { BigNumber } from 'ethers';
-import { deployFixtures } from '../shared/fixtures';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { expect } from 'chai';
+import { BigNumber } from 'ethers';
+import { ethers, network } from 'hardhat';
 import { DexPool, DexPoolFactory, DexToken } from '../../typechain-types';
-import { getRandomNumber, getTestAmounts } from '../utils/pool-utils';
-import { sqrt } from '../utils/bn';
 import {
   hardhatImpersonateDexFactory,
   loadVariables,
   mintAndIncreaseAllowance,
 } from '../shared/setup';
+import { sqrt } from '../utils/bn';
+import { getRandomNumber, getTestAmounts } from '../utils/pool-utils';
 
 describe('DexPool.sol', () => {
   let dexPool: DexPool,
@@ -160,7 +158,7 @@ describe('DexPool.sol', () => {
       await dexPool.connect(factorySigner).initialize(...initParams);
       await expect(
         dexPool.connect(factorySigner).initialize(...initParams)
-      ).to.be.revertedWith('Initializable: contract is already initialized');
+      ).to.be.revertedWithCustomError(dexPool, 'AlreadyInitialized');
     });
   });
 

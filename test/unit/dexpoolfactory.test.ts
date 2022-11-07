@@ -8,21 +8,20 @@ import { ContractReceipt, ContractTransaction } from '@ethersproject/contracts';
 describe('DexPoolFactory tests', async function () {
   let deployer: SignerWithAddress,
     dexPoolFactory: DexPoolFactory,
-    dexPool: DexPool,
+    dexPoolImpl: DexPool,
     initParams: [string, string, string, BigNumber];
 
   describe('CreatePool', async function () {
     this.beforeEach(async function () {
-      ({ deployer, dexPool, dexPoolFactory, initParams } = await loadVariables(
-        BigNumber.from(3000)
-      ));
+      ({ deployer, dexPoolImpl, dexPoolFactory, initParams } =
+        await loadVariables(BigNumber.from(3000)));
     });
     it('creates pools correctly', async function () {
       let tokenA, tokenB, fee;
       [, tokenA, tokenB, fee] = initParams;
       let tx: ContractTransaction = await dexPoolFactory
         .connect(deployer)
-        .createPool(dexPool.address, tokenA, tokenB, fee);
+        .createPool(dexPoolImpl.address, tokenA, tokenB, fee);
       let receipt: ContractReceipt = await tx.wait();
       let event = receipt.events!.filter((x) => {
         return x.event == 'PoolCreated';
